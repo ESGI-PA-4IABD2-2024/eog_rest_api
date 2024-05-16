@@ -1,0 +1,8 @@
+version: "3.8"
+services:
+  esgi_pa_4iabd2_api:
+    container_name: esgi_pa_4iabd2_api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped

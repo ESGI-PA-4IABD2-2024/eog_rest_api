@@ -1,0 +1,88 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  cleanFiles:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            if [ -d '/home/ubuntu/containers/esgi_4iabd_pa/api/' ]; then
+              rm -rf /home/ubuntu/containers/esgi_4iabd_pa/api/
+            fi
+
+  uploadFiles:
+    runs-on: ubuntu-latest
+    needs: cleanFiles
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Copy repository contents via scp
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          source: '.'
+          target: '/home/ubuntu/containers/esgi_4iabd_pa/api/'
+
+  updateEnvFile:
+    runs-on: ubuntu-latest
+    needs: uploadFiles
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            cd /home/ubuntu/containers/esgi_4iabd_pa/api/
+            echo 'DATABASE_PORT=${{ secrets.DATABASE_PORT }}' >> .env
+            echo 'DATABASE_NAME=${{ secrets.DATABASE_NAME }}' >> .env
+            echo 'DATABASE_ADDRESS=${{ secrets.DATABASE_ADDRESS }}' >> .env
+            echo 'DATABASE_USERNAME=${{ secrets.DATABASE_USERNAME }}' >> .env
+            echo 'DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}' >> .env
+
+
+  buildAndRun:
+    runs-on: ubuntu-latest
+    needs: updateEnvFile
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Executing remote command
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            cd /home/ubuntu/containers/esgi_4iabd_pa/api/
+            docker-compose down --remove-orphans
+            docker-compose up --build
