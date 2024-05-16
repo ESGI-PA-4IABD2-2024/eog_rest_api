@@ -1,6 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+
+from db_interactions import get_open_stations
 
 app = FastAPI()
 
@@ -15,6 +17,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/request/stations")
+def request_stations():
+    stations = get_open_stations()
+    return {"stations": stations}
 
 
 @app.get("/departure-arrival/{departure_location}/{arrival_location}")
