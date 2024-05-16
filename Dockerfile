@@ -1,17 +1,16 @@
-FROM python:3.9-slim
+FROM debian:latest
 LABEL author="AntoineTSIO"
 
 WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y default-libmysqlclient-dev gcc git && \
-    pip install --upgrade pip && \
-    pip install \
-        mysql-connector-python \
-        fastapi \
-        uvicorn \
-        python-dotenv \
-        git+https://github.com/Rapptz/discord.py@cb3ea9b889dcdefa5aa81b1dc7ce4e3e87abeeb0
+RUN apt-get update -y
+RUN apt-get install -y \
+  python3-fastapi \
+  python3-uvicorn \
+  python3-mysql-connector-python \
+  python3-python-dotenv \
+
+RUN apt-get update -y
 
 COPY . .
 
