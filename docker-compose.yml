@@ -1,8 +1,11 @@
 version: "3.8"
 services:
-  esgi_pa_4iabd2_api:
-    container_name: esgi_pa_4iabd2_api
+  api_pa_4iabd2:
+    container_name: api_pa_4iabd2
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: docker/Dockerfile
+    ports:
+      - "25190:8000"
     restart: unless-stopped
+    platform: linux/amd64

@@ -31,4 +31,4 @@ def departure_arrival(departure_location: str, arrival_location: str):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=25190)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
