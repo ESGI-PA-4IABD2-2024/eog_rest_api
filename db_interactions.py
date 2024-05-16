@@ -1,4 +1,5 @@
 import os
+
 import mysql.connector
 from dotenv import load_dotenv
 
@@ -28,13 +29,13 @@ def get_open_stations():
         return None
     try:
         cursor = connection.cursor()
-        query = 'SELECT nom, ligne FROM stations WHERE ouverte=1 ORDER BY nom'
+        query = "SELECT nom, ligne FROM stations WHERE ouverte=1 ORDER BY nom"
         cursor.execute(query)
         stations_list = cursor.fetchall()
 
         stations = []
         for station in stations_list:
-            stations.append({'nom': station[0], 'ligne': station[1]})
+            stations.append({"nom": station[0], "ligne": station[1]})
 
         cursor.close()
         return stations
@@ -44,4 +45,3 @@ def get_open_stations():
     finally:
         if connection:
             connection.close()
-
