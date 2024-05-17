@@ -1,17 +1,14 @@
-FROM debian:latest
-LABEL author="AntoineTSIO"
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y \
+    python3-fastapi \
+    python3-uvicorn \
+ && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN apt-get update -y
-RUN apt-get install -y \
-  python3-fastapi \
-  python3-uvicorn \
-  python3-mysql-connector-python \
-  python3-python-dotenv
+COPY . /app
 
-RUN apt-get update
-
-COPY . .
+RUN pip install --no-cache-dir mysql-connector-python python-dotenv
 
 CMD ["python", "api.py"]
