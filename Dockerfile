@@ -1,14 +1,11 @@
-FROM arm64v8/python:3.11-slim
+FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y \
-    python3-fastapi \
-    python3-uvicorn \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get update
 
 WORKDIR /app
 
 COPY . /app
 
-RUN pip install --no-cache-dir mysql-connector-python python-dotenv
+RUN pip install --no-cache-dir mysql-connector-python python-dotenv fastapi uvicorn
 
 CMD ["python", "api.py"]
