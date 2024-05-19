@@ -85,4 +85,4 @@ jobs:
           script: |
             cd /home/ubuntu/containers/esgi_4iabd_pa/api/
             docker-compose down --remove-orphans
-            docker-compose up --build
+            docker-compose up --build -d
