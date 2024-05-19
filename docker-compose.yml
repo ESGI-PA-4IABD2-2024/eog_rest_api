@@ -1,7 +1,7 @@
 version: "3.8"
 services:
-  api_pa_4iabd2:
-    container_name: api_pa_4iabd2
+  api_pa:
+    container_name: api_pa
     build:
       context: .
       dockerfile: Dockerfile
