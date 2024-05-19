@@ -1,9 +1,21 @@
-FROM arm64v8/python:3.11-slim
+FROM debian:latest
 
 WORKDIR /app
 
-COPY . /app
+COPY . .
 
-RUN pip install --no-cache-dir mysql-connector-python python-dotenv fastapi uvicorn
+RUN apt-get update -y && \
+    apt-get install -y \
+    python3-fastapi \
+    python3-uvicorn \
+    python3-pip \
+    python3-venv
 
-CMD ["python", "api.py"]
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install \
+    mysql-connector-python \
+    python-dotenv
+
+CMD ["python3", "api.py"]
