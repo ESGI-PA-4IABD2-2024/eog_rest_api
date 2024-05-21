@@ -45,3 +45,27 @@ def get_open_stations():
     finally:
         if connection:
             connection.close()
+
+
+def get_arrival_stations():
+    connection = get_db_connection()
+    if connection is None:
+        return None
+    try:
+        cursor = connection.cursor()
+        query = "SELECT DISTINCT nom FROM stations WHERE ouverte=1 ORDER BY nom"
+        cursor.execute(query)
+        stations_list = cursor.fetchall()
+
+        stations = []
+        for station in stations_list:
+            stations.append({"nom": station})
+
+        cursor.close()
+        return stations
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        if connection:
+            connection.close()
