@@ -2,6 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from db_interactions import get_arrival_stations
 from db_interactions import get_open_stations
 
 app = FastAPI()
@@ -20,6 +21,12 @@ app.add_middleware(
 @app.get("/request/stations")
 def request_stations():
     stations = get_open_stations()
+    return {"stations": stations}
+
+
+@app.get("/request/arrival")
+def request_arrival():
+    stations = get_arrival_stations()
     return {"stations": stations}
 
 
