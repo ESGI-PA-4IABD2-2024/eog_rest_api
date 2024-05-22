@@ -29,30 +29,6 @@ def get_open_stations():
         return None
     try:
         cursor = connection.cursor()
-        query = "SELECT nom, ligne FROM stations WHERE ouverte=1 ORDER BY nom"
-        cursor.execute(query)
-        stations_list = cursor.fetchall()
-
-        stations = []
-        for station in stations_list:
-            stations.append({"nom": station[0], "ligne": station[1]})
-
-        cursor.close()
-        return stations
-    except Exception as e:
-        print(f"Error: {e}")
-        return None
-    finally:
-        if connection:
-            connection.close()
-
-
-def get_arrival_stations():
-    connection = get_db_connection()
-    if connection is None:
-        return None
-    try:
-        cursor = connection.cursor()
         query = "SELECT DISTINCT nom FROM stations WHERE ouverte=1 ORDER BY nom"
         cursor.execute(query)
         stations_list = cursor.fetchall()
