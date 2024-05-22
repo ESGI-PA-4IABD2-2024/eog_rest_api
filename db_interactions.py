@@ -59,7 +59,7 @@ def get_arrival_stations():
 
         stations = []
         for station in stations_list:
-            stations.append({"nom": station})
+            stations.append({"nom": station[0]})
 
         cursor.close()
         return stations
