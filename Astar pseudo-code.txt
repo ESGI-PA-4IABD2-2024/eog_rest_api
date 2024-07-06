@@ -1,0 +1,32 @@
+Objets à créer :
+- un noeud pour chaque quai avec ces attributs :
+ - ID_quai
+ - liste des trajets sortant
+ - minimal_arrival_time
+ - parent
+- une arrête pour chaque trajet avec ces attributs :
+ - ID_quai de départ
+ - ID_quai d'arrivée
+ - is_on_foot (booléen)
+ - timestamp de départ (if !is_on_foot)
+ - timestamp d'arrivée (if !is_on_foot)
+ - temps de trajet (if is_on_foot)
+
+
+
+// init
+for each node :
+    set minimal_arrival_time at 1440' (24h)
+origin_node.minimal_arrival_time = current_time
+for each node (looping by minimal_arrival_time) :
+    if current_node == destination :
+        break
+    for each neibourgh :
+        for each departure_time > current_node.minimal_arrival_time :
+            if departure_time >= current_destination.minimal_arrival_time :
+                break
+            if arrival_time < current_destination.minimal_arrival_time :
+                current_destination.minimal_arrival_time = arrival_time
+                current_destination.parent = current_node
+
+When looking at the optimal (final) path, check the number of the max and min zone (1-5) to show the cost of the ticket.
