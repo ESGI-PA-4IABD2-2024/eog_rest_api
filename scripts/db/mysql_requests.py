@@ -1,8 +1,6 @@
 from datetime import datetime
 from datetime import timedelta
 
-import pandas as pd
-
 from .database_connection import get_db_connection
 
 
@@ -26,14 +24,19 @@ def get_routes(departure_time: datetime, arrival_time: datetime):
                       routes \
                   WHERE \
                       route_time IS NOT NULL \
-                      OR departure_hour >= '{departure_time.strftime('%Y-%m-%d %H:%M:%S')}' AND arrival_hour <= '{arrival_time.strftime('%Y-%m-%d %H:%M:%S')}'"
+                      OR departure_hour >= '{departure_time.strftime('%Y-%m-%d %H:%M:%S')}' \
+                      AND arrival_hour <= '{arrival_time.strftime('%Y-%m-%d %H:%M:%S')}'"
         cursor.execute(query)
-        routes_data = [{"id_departure_platform": row[0]
-                        , "id_arrival_platform": row[1]
-                        , "departure_time": row[2]
-                        , "arrival_time": row[3]
-                        , "on_foot_travel_time": timedelta(minutes = row[4]) if row[4] else None
-                       } for row in cursor.fetchall()]
+        routes_data = [
+            {
+                "id_departure_platform": row[0],
+                "id_arrival_platform": row[1],
+                "departure_time": row[2],
+                "arrival_time": row[3],
+                "on_foot_travel_time": timedelta(minutes=row[4]) if row[4] else None,
+            }
+            for row in cursor.fetchall()
+        ]
         return routes_data
 
     except Exception as e:
@@ -64,9 +67,13 @@ def get_platforms_data(platform_id_list):
                       LEFT JOIN stations ON platforms.id_station = stations.id_gare \
                       LEFT JOIN cluster ON stations.id_cluster = cluster.id_cluster \
                   WHERE \
-                      id_platform IN ({})".format(",".join(["%s"] * len(platform_id_list)))
+                      id_platform IN ({})".format(
+            ",".join(["%s"] * len(platform_id_list))
+        )
         cursor.execute(query, platform_id_list)
-        platforms_data = {row[0]: {"line": row[1], "station_name": row[2]} for row in cursor.fetchall()}
+        platforms_data = {
+            row[0]: {"line": row[1], "station_name": row[2]} for row in cursor.fetchall()
+        }
         return platforms_data
 
     except Exception as e:
@@ -79,7 +86,6 @@ def get_platforms_data(platform_id_list):
 
 
 def get_overcrowded_platforms():
-    
     """
     Récupère l'ensemble des quais de gares bondées.
     """
@@ -89,7 +95,7 @@ def get_overcrowded_platforms():
 
     try:
         cursor = connection.cursor()
-        query = f"SELECT \
+        query = "SELECT \
                       id_platform \
                   FROM \
                       malus \
@@ -106,10 +112,9 @@ def get_overcrowded_platforms():
     finally:
         if connection:
             connection.close()
-    
-    
+
+
 def get_first_platform_from_cluster(cluster_name: str):
-    
     """
     Récupère un quai appartenant à cette gare/cluster.
     """
@@ -139,5 +144,3 @@ def get_first_platform_from_cluster(cluster_name: str):
     finally:
         if connection:
             connection.close()
-            
-            
