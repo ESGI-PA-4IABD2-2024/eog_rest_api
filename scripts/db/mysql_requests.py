@@ -24,8 +24,12 @@ def get_routes(departure_time: datetime, arrival_time: datetime):
                       routes \
                   WHERE \
                       route_time IS NOT NULL \
-                      OR departure_hour >= '{departure_time.strftime('%Y-%m-%d %H:%M:%S')}' \
-                      AND arrival_hour <= '{arrival_time.strftime('%Y-%m-%d %H:%M:%S')}'"
+                      OR ( \
+                          departure_hour IS NOT NULL \
+                          AND arrival_hour IS NOT NULL \
+                          AND departure_hour >= '{departure_time.strftime('%Y-%m-%d %H:%M:%S')}' \
+                          AND arrival_hour <= '{arrival_time.strftime('%Y-%m-%d %H:%M:%S')}' \
+                         )"
         cursor.execute(query)
         routes_data = [
             {
@@ -33,7 +37,7 @@ def get_routes(departure_time: datetime, arrival_time: datetime):
                 "id_arrival_platform": row[1],
                 "departure_time": row[2],
                 "arrival_time": row[3],
-                "on_foot_travel_time": timedelta(minutes=row[4]) if row[4] else None,
+                "on_foot_travel_time": timedelta(minutes=row[4]) if row[4] != None else None,
             }
             for row in cursor.fetchall()
         ]

@@ -12,7 +12,7 @@ NOW = datetime.now()
 class Platform :
     def __init__(self
                  , id_platform: int
-                 , minimal_arrival_time: float
+                 , minimal_arrival_time: datetime
                  , routes: List["Route"] = []
                  ):
         self.id_platform = id_platform
@@ -34,14 +34,13 @@ class Route:
                  ):
         self.id_departure_platform = id_departure_platform
         self.id_arrival_platform = id_arrival_platform
-        if(on_foot_travel_time):
+        if(on_foot_travel_time != None):
             self.is_on_foot: bool = True
             self.on_foot_travel_time = on_foot_travel_time
         else :
             self.is_on_foot: bool = False
-            self.departure_time = departure_time
-            self.arrival_time = arrival_time
-        self.is_overcrowded = False
+        self.departure_time = departure_time
+        self.arrival_time = arrival_time
 
 
 def get_optimal_route_from_departure(departure_platform: str
@@ -120,9 +119,9 @@ def get_optimal_route_from_departure(departure_platform: str
     took_off: bool = False
     
     while (not reached_arrival):
-        for route in current_platform.routes :
-            if (route.is_on_foot
-                or route.departure_time >= current_platform.minimal_arrival_time
+        for route in current_platform.routes :            
+            if ((route.is_on_foot
+                or route.departure_time >= current_platform.minimal_arrival_time)
                 and route.id_arrival_platform in unchecked_platforms
                 and not (avoid_people and platforms[route.id_arrival_platform].is_overcrowded)
                ):
