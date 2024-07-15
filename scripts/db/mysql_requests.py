@@ -6,7 +6,7 @@ import pandas as pd
 from .database_connection import get_db_connection
 
 
-def get_routes(departure_time, arrival_time):
+def get_routes(departure_time: datetime, arrival_time: datetime):
     """
     Récupère la liste des trajets.
     """
@@ -25,8 +25,8 @@ def get_routes(departure_time, arrival_time):
                   FROM \
                       routes \
                   WHERE \
-                      route_time NOT NULL
-                      OR departure_hour >= {departure_time} and arrival_hour <= {arrival_time}"
+                      route_time IS NOT NULL \
+                      OR departure_hour >= '{departure_time.strftime('%Y-%m-%d %H:%M:%S')}' AND arrival_hour <= '{arrival_time.strftime('%Y-%m-%d %H:%M:%S')}'"
         cursor.execute(query)
         routes_data = [{"id_departure_platform": row[0]
                         , "id_arrival_platform": row[1]
@@ -55,16 +55,16 @@ def get_platforms_data(platform_id_list):
 
     try:
         cursor = connection.cursor()
-        query = f"SELECT \
+        query = "SELECT \
                       id_platform \
                     , ligne_platform \
                     , name_cluster \
                   FROM \
-                      PLATFORMS \
-                      LEFT JOIN STATIONS ON PLATFORMS.id_station = STATIONS.id_gare \
-                      LEFT JOIN CLUSTER ON STATIONS.id_cluster = CLUSTER.id_cluster \
+                      platforms \
+                      LEFT JOIN stations ON platforms.id_station = stations.id_gare \
+                      LEFT JOIN cluster ON stations.id_cluster = cluster.id_cluster \
                   WHERE \
-                      id_platform IN ({platform_id_list})".format(",".join(["%s"] * len(platform_id_list)))
+                      id_platform IN ({})".format(",".join(["%s"] * len(platform_id_list)))
         cursor.execute(query, platform_id_list)
         platforms_data = {row[0]: {"line": row[1], "station_name": row[2]} for row in cursor.fetchall()}
         return platforms_data
@@ -92,9 +92,9 @@ def get_overcrowded_platforms():
         query = f"SELECT \
                       id_platform \
                   FROM \
-                      MALUS
-                      INNER JOIN STATIONS ON MALUS.id_cluster = STATIONS.id_cluster \
-                      INNER JOIN PLATFORMS ON STATIONS.id_station = PLATFORMS.id_gare"
+                      malus \
+                      INNER JOIN stations ON malus.id_cluster = stations.id_cluster \
+                      INNER JOIN platforms ON stations.id_gare = platforms.id_station"
         cursor.execute(query)
         overcrowded_platforms = [row[0] for row in cursor.fetchall()]
         return overcrowded_platforms
@@ -108,3 +108,36 @@ def get_overcrowded_platforms():
             connection.close()
     
     
+def get_first_platform_from_cluster(cluster_name: str):
+    
+    """
+    Récupère un quai appartenant à cette gare/cluster.
+    """
+    connection = get_db_connection()
+    if connection is None:
+        return None
+
+    try:
+        cursor = connection.cursor(buffered=True)
+        query = f"SELECT \
+                      id_platform \
+                  FROM \
+                      cluster \
+                      INNER JOIN stations ON cluster.id_cluster = stations.id_cluster \
+                      INNER JOIN platforms ON stations.id_gare = platforms.id_station \
+                  WHERE \
+                      cluster.name_cluster = '{cluster_name}'"
+        cursor.execute(query)
+        platform = cursor.fetchone()[0]
+        cursor.close()
+        return platform
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
+    finally:
+        if connection:
+            connection.close()
+            
+            

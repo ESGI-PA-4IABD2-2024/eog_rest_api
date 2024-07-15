@@ -31,7 +31,7 @@ def request_stations():
 def departure_arrival(departure_location: str, arrival_location: str, response: Response):
     print(f"Departure: {departure_location}")
     print(f"Arrival: {arrival_location}")
-    departure_time = datetime.strptime(time(), "%Y-%m-%dT%H:%M:%S.%fZ")
+    departure_time = datetime.now()
     arrival_time = departure_time + timedelta(hours=2)
     departure_to_arrival = get_optimal_route(departure_location
                                              , arrival_location

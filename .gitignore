@@ -1,3 +1,5 @@
 .idea
 .env
 GBO_env/
+local_tests.py
+*temp*
