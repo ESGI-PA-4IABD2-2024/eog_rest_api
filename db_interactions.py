@@ -29,7 +29,7 @@ def get_open_stations():
         return None
     try:
         cursor = connection.cursor()
-        query = "SELECT DISTINCT nom FROM stations_app WHERE ouverte=1 ORDER BY nom"
+        query = "SELECT DISTINCT name_cluster FROM cluster ORDER BY name_cluster"
         cursor.execute(query)
         stations_list = cursor.fetchall()
 
