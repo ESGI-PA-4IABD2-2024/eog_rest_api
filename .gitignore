@@ -3,3 +3,4 @@
 GBO_env/
 local_tests.py
 *temp*
+__pycache__/*

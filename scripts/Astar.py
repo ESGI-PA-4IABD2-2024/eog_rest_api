@@ -121,7 +121,8 @@ def get_optimal_route_from_departure(departure_platform: str
     
     while (not reached_arrival):
         for route in current_platform.routes :
-            if (route.departure_time >= current_platform.minimal_arrival_time
+            if (route.is_on_foot
+                or route.departure_time >= current_platform.minimal_arrival_time
                 and route.id_arrival_platform in unchecked_platforms
                 and not (avoid_people and platforms[route.id_arrival_platform].is_overcrowded)
                ):
