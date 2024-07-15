@@ -40,7 +40,7 @@ def get_routes(departure_time: datetime, arrival_time: datetime):
         return routes_data
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"error: {e}")
         return None
 
     finally:
@@ -77,7 +77,7 @@ def get_platforms_data(platform_id_list):
         return platforms_data
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"error: {e}")
         return None
 
     finally:
@@ -106,7 +106,7 @@ def get_overcrowded_platforms():
         return overcrowded_platforms
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"error: {e}")
         return None
 
     finally:
@@ -138,7 +138,7 @@ def get_first_platform_from_cluster(cluster_name: str):
         return platform
 
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"error: {e}")
         return None
 
     finally:

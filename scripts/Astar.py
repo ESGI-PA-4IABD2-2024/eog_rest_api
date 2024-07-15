@@ -100,7 +100,7 @@ def get_optimal_route_from_departure(departure_platform: str
                                                             , [])
     
     if (id_departure_platform not in platforms.keys() or id_arrival_platform not in platforms.keys()):
-        return {"Error": "Aucun trajet disponible."}
+        return {"error": "Aucun trajet disponible."}
     
     overcrowded_platforms: List[int] = get_overcrowded_platforms()
     for platform_id in overcrowded_platforms:
@@ -108,9 +108,9 @@ def get_optimal_route_from_departure(departure_platform: str
             platforms[platform_id].is_overcrowded = True
     
     if (platforms[id_departure_platform].is_overcrowded):
-        return {"Error": "La station de départ est bondée ou fermée."}
+        return {"error": "La station de départ est bondée ou fermée."}
     if (platforms[id_arrival_platform].is_overcrowded):    
-        return {"Error": "La station d'arrivée est bondée ou fermée"}
+        return {"error": "La station d'arrivée est bondée ou fermée"}
     
     reached_arrival: bool = False
     unchecked_platforms: set[int] = set(platforms.keys())
@@ -137,14 +137,14 @@ def get_optimal_route_from_departure(departure_platform: str
             if current_platform.minimal_arrival_time > platforms[id_platform].minimal_arrival_time:
                 current_platform = platforms[id_platform]
         if (current_platform.id_platform == -1):
-            return {"Error": "Aucun trajet disponible."}
+            return {"error": "Aucun trajet disponible."}
         unchecked_platforms.remove(current_platform.id_platform)
         if (current_platform.minimal_arrival_time == departure_time): # Because we can take any platform of the given starting cluster.
             id_departure_platform = current_platform.id_platform
         if current_platform == platforms[id_arrival_platform]:
             reached_arrival = True
         elif (not unchecked_platforms):
-            return {"Error": "Aucun trajet ne permet d'éviter les station bondées."}
+            return {"error": "Aucun trajet ne permet d'éviter les station bondées."}
     
     while (current_platform.parent.line != current_platform.line):
         current_platform = current_platform.parent
@@ -172,7 +172,7 @@ def get_optimal_route_from_arrival(id_departure_platform: int
                                    , avoid_people: bool
                                    , on_foot_speed_multiplier: float
                                   ):
-    return {"Error": "Comming soon"}
+    return {"error": "Comming soon"}
     
 
 def get_optimal_route(id_departure_platform: int
@@ -184,7 +184,7 @@ def get_optimal_route(id_departure_platform: int
                       , on_foot_speed_multiplier: float
                      ):
     if id_departure_platform == id_arrival_platform:
-        return {"Error": "Gares de départ et d'arrivée identiques."}
+        return {"error": "Gares de départ et d'arrivée identiques."}
     if go_back_in_time :
         return get_optimal_route_from_arrival(id_departure_platform
                                               , id_arrival_platform
