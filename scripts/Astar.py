@@ -1,10 +1,13 @@
 from typing import List, Dict
-from db.mysql_requests import get_routes
-from db.mysql_requests import get_platforms_data
-from db.mysql_requests import get_overcrowded_platforms
+from scripts.db.mysql_requests import get_routes
+from scripts.db.mysql_requests import get_platforms_data
+from scripts.db.mysql_requests import get_overcrowded_platforms
+from scripts.db.mysql_requests import get_first_platform_from_cluster
 from datetime import datetime
 from datetime import timedelta
 
+
+NOW = datetime.now()
 
 class Platform :
     def __init__(self
@@ -18,6 +21,7 @@ class Platform :
         self.parent: "Platform" = None
         self.line = None
         self.station_name = None
+        self.is_overcrowded: bool = False
              
     
 class Route:
@@ -40,8 +44,8 @@ class Route:
         self.is_overcrowded = False
 
 
-def get_optimal_route_from_departure(id_departure_platform: int
-                                     , id_arrival_platform: int
+def get_optimal_route_from_departure(departure_platform: str
+                                     , arrival_platform: str
                                      , departure_time: datetime
                                      , arrival_maximal_time: datetime
                                      , avoid_people: bool
@@ -70,6 +74,8 @@ def get_optimal_route_from_departure(id_departure_platform: int
                     current_route[f"node_{number_of_elements}"] = f"{current_platform.station_name} - Ligne {current_platform.line}"
         return current_route, number_of_elements, number_of_changes
     
+    id_departure_platform = get_first_platform_from_cluster(departure_platform)
+    id_arrival_platform = get_first_platform_from_cluster(arrival_platform)
     
     platforms: Dict[int, "Platform"] = {}
     db_routes: List[Dict] = get_routes(departure_time, arrival_maximal_time)
@@ -83,17 +89,19 @@ def get_optimal_route_from_departure(id_departure_platform: int
             platforms[route.id_departure_platform].routes.append(route)
         else:
             platforms[route.id_departure_platform] = Platform(route.id_departure_platform
-                                                            , 9999999999999999
-                                                            , [route])
-        route.id_departure_platform = platforms[route.id_departure_platform]
+                                                              , NOW + timedelta(hours=3)
+                                                              , [route])
         
         if route.id_arrival_platform in platforms.keys():
             platforms[route.id_arrival_platform].routes.append(route)
         else:
             platforms[route.id_arrival_platform] = Platform(route.id_arrival_platform
-                                                            , 9999999999999999
+                                                            , NOW + timedelta(hours=3)
                                                             , [])
-        route.id_arrival_platform = platforms[route.id_arrival_platform]
+    
+    if (id_departure_platform not in platforms.keys() or id_arrival_platform not in platforms.keys()):
+        return {"Error": "Aucun trajet disponible."}
+    
     overcrowded_platforms: List[int] = get_overcrowded_platforms()
     for platform_id in overcrowded_platforms:
         if platform_id in platforms.keys():
@@ -105,34 +113,37 @@ def get_optimal_route_from_departure(id_departure_platform: int
         return {"Error": "La station d'arrivée est bondée ou fermée"}
     
     reached_arrival: bool = False
-    unchecked_platforms: Dict["Platform"] = platforms.copy()
+    unchecked_platforms: set[int] = set(platforms.keys())
     platforms[id_departure_platform].minimal_arrival_time = departure_time
     current_platform: "Platform" = platforms[id_departure_platform]
-    del unchecked_platforms[current_platform]
+    unchecked_platforms.remove(current_platform.id_platform)
     took_off: bool = False
     
     while (not reached_arrival):
         for route in current_platform.routes :
             if (route.departure_time >= current_platform.minimal_arrival_time
-                and route.id_arrival_platform in unchecked_platforms.keys()
-                and not (avoid_people and unchecked_platforms[route.id_arrival_platform].is_overcrowded)
+                and route.id_arrival_platform in unchecked_platforms
+                and not (avoid_people and platforms[route.id_arrival_platform].is_overcrowded)
                ):
                 if route.is_on_foot:
-                    unchecked_platforms[route.id_arrival_platform].minimal_arrival_time = current_platform.minimal_arrival_time + (route.on_foot_travel_time * on_foot_speed_multiplier)
-                else:
-                    unchecked_platforms[route.id_arrival_platform].minimal_arrival_time = min(unchecked_platforms[route.id_arrival_platform].minimal_arrival_time, route.arrival_time)
-                unchecked_platforms[route.id_arrival_platform].parent = current_platform
-        
-        current_platform = Platform(-1, 10000000000000000)
-        for platform in unchecked_platforms.values():
-            if platform.minimal_arrival_time < current_platform.minimal_arrival_time:
-                current_platform = platform
-        del unchecked_platforms[current_platform]
-        if (current_platform.minimal_arrival_time == departure_time):
+                    if (platforms[route.id_arrival_platform].minimal_arrival_time > current_platform.minimal_arrival_time + (route.on_foot_travel_time * on_foot_speed_multiplier)):
+                        platforms[route.id_arrival_platform].minimal_arrival_time = current_platform.minimal_arrival_time + (route.on_foot_travel_time * on_foot_speed_multiplier)
+                        platforms[route.id_arrival_platform].parent = current_platform
+                elif (platforms[route.id_arrival_platform].minimal_arrival_time > route.arrival_time):
+                    platforms[route.id_arrival_platform].minimal_arrival_time = route.arrival_time
+                    platforms[route.id_arrival_platform].parent = current_platform
+        current_platform = Platform(-1, NOW + timedelta(hours=3))
+        for id_platform in unchecked_platforms:
+            if current_platform.minimal_arrival_time > platforms[id_platform].minimal_arrival_time:
+                current_platform = platforms[id_platform]
+        if (current_platform.id_platform == -1):
+            return {"Error": "Aucun trajet disponible."}
+        unchecked_platforms.remove(current_platform.id_platform)
+        if (current_platform.minimal_arrival_time == departure_time): # Because we can take any platform of the given starting cluster.
             id_departure_platform = current_platform.id_platform
         if current_platform == platforms[id_arrival_platform]:
             reached_arrival = True
-        elif unchecked_platforms.is_empty():
+        elif (not unchecked_platforms):
             return {"Error": "Aucun trajet ne permet d'éviter les station bondées."}
     
     while (current_platform.parent.line != current_platform.line):
@@ -145,12 +156,13 @@ def get_optimal_route_from_departure(id_departure_platform: int
         current_platform = current_platform.parent
         platforms_in_optimal_route.add(current_platform.id_platform)
     
-    platforms_data: Dict = get_platforms_data(platforms_in_optimal_route)
-    for platform_id, data in platforms_data.enumerate():
+    platforms_data: Dict = get_platforms_data(list(platforms_in_optimal_route))
+    for platform_id, data in platforms_data.items():
         platforms[platform_id].line = data["line"]
         platforms[platform_id].station_name = data["station_name"]
     
-    return get_ancestry(platforms[id_arrival_platform], False)
+    optimal_route, _, _ = get_ancestry(platforms[id_arrival_platform], False)
+    return optimal_route
 
 
 def get_optimal_route_from_arrival(id_departure_platform: int
