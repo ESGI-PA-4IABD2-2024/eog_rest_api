@@ -10,7 +10,8 @@ RUN apt-get update && \
         mysql-connector-python \
         python-dotenv \
         fastapi \
-        uvicorn
+        uvicorn \
+        pandas
 
 COPY . .
 
